@@ -3,7 +3,7 @@ Help you move and build blocks faster
 
 version: 1.6.2
 
-# Ssage
+# Usage
 Parachute: Hold it and use it to reduce the falling speed to 1
 
 Track & Trampoline: When standing or jumping from above, it will accelerate until landing

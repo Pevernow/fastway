@@ -48,16 +48,21 @@ local function way_step(player, dtime)
       local jetpack = inventory:get_stack("main", i)
 	  if jetpack:get_name()=="fastway:jetpack" then
 	    local meta = minetest.deserialize(jetpack:get_metadata())
-		if not meta or not meta.charge or not meta.enable then
+		if not meta or not meta.charge or meta.mode == nil then
 		  break
 		end
-	    if meta.enable == true then
-		  local meta = minetest.deserialize(jetpack:get_metadata())
-		  if not meta or not meta.charge then
-		    break
+	    if meta.mode ~= nil and meta.mode ~= "disable" then
+		  if meta.mode == "enable" then
+		    meta.charge = meta.charge - dtime*600
+		  elseif meta.mode == "fast" then
+		    meta.charge = meta.charge - dtime*3000
 		  end
-		  meta.charge = meta.charge - dtime*6000
-		  minetest.debug(meta.charge)
+		  
+		  if meta.charge<=0 then
+		    meta.charge=0
+			meta.enable=false
+			player_monoids.fly:del_change(player,"fastway:jetpack")
+		  end
 		  jetpack:set_metadata(minetest.serialize(meta))
 		  technic.set_RE_wear(jetpack, meta.charge, 65535)
 		  inventory:set_stack("main", i,jetpack)
@@ -195,18 +200,25 @@ minetest.register_tool("fastway:jetpack", {
 		if not meta then
 		    return
 		end
-		if meta.enable == nil then
-		    meta.enable = false
+		if meta.mode == nil then
+		    meta.mode = "disable"
 		end
-	    if meta.enable==false then
+	    if meta.mode=="disable" then
 	        player_monoids.fly:add_change(player,true,"fastway:jetpack")
-			meta.enable = true
-		elseif meta.enable==true then
-		    player_monoids.fly:add_change(player,false,"fastway:jetpack")
-			meta.enable = false
+			player_monoids.speed:del_change(player,"fastway:jetpack")
+			meta.mode = "enable"
+		elseif meta.mode=="enable" then
+		    player_monoids.speed:add_change(player,3,"fastway:jetpack")
+		    player_monoids.fly:add_change(player,true,"fastway:jetpack")
+			meta.mode = "fast"
+		elseif meta.mode=="fast" then
+		    player_monoids.fly:del_change(player,"fastway:jetpack")
+			player_monoids.speed:del_change(player,"fastway:jetpack")
+			meta.mode = "disable"
 		end
+		minetest.chat_send_player(player:get_player_name(), meta.mode)
 		itemstack:set_metadata(minetest.serialize(meta))
-		return itemstacks
+		return itemstack
 	end
 })
 minetest.register_craft({

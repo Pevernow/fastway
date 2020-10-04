@@ -1,0 +1,6 @@
+# textdomain: fastway
+
+parachute=
+track=
+trampoline=
+jetpack=
